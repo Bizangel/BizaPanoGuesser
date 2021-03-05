@@ -1,10 +1,9 @@
 import sys
-from pyngrok import ngrok
-from flask import Flask, render_template
-from flask_socketio import SocketIO, join_room, leave_room
-from flask_socketio import send, emit
-
-
+from flask import Flask, request
+from flask_socketio import SocketIO
+from flask_socketio import emit
+from Game import Game
+# For emitting to specific client use it's sid on the room parameter of emit
 app = Flask(__name__,
             static_url_path='',
             static_folder='web/static',
@@ -18,31 +17,68 @@ if len(sys.argv) == 2:
 else:
     socketio = SocketIO(app)
 
+PanoGame = Game()
+
 
 @ app.route("/")
 def hello():
-    return app.send_static_file('index.html')
+    return app.send_static_file('sync.html')
 
 
-@ app.route("/js/socket.io.min.js")
-def getsocketio():
-    return app.send_static_file('js/socket.io.min.js')
+def emitUpdateValue():
+    emit('stateupdate', PanoGame.getValue(), broadcast=True)
 
 
-@ socketio.on('chat message')
-def on_chat_message(msg):
-    emit('chat message', msg, broadcast=True)
+def emitUpdateConnected():
+    emit('connectedupdate', PanoGame.getConnected(), broadcast=True)
 
 
-@ socketio.on('connect')
+@socketio.on('minus')
+def applyminus():
+    PanoGame.minus()
+    emitUpdateValue()
+
+
+@socketio.on('plus')
+def applyplus():
+    PanoGame.plus()
+    emitUpdateValue()
+
+
+@socketio.on('connect')
 def on_connect():
-    print('A user connected', file=sys.stderr)
+    PanoGame.addPlayer(request.sid)
+    emitUpdateConnected()
+    emit('stateupdate', PanoGame.getValue(), broadcast=False)
+    # For whoever connected
 
 
-@ socketio.on('disconnect')
+@socketio.on('disconnect')
 def on_disconnect():
-    print('A user connected', file=sys.stderr)
+    PanoGame.removePlayer(request.sid)
+    emitUpdateConnected()
+
+# chatroom test
+# @ app.route("/")
+# def hello():
+#     return app.send_static_file('index.html')
+#
+#
+# @ socketio.on('chat message')
+# def on_chat_message(msg):
+#     emit('chat message', msg, broadcast=True)
+#
+#
+# @ socketio.on('connect')
+# def on_connect():
+#     print('A user connected', file=sys.stderr)
+#
+#
+# @ socketio.on('disconnect')
+# def on_disconnect():
+#     print('A user connected', file=sys.stderr)
 
 
 if __name__ == '__main__':
+    SYNC_VALUE = 0
     socketio.run(app, debug=True, port=6789)
