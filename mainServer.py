@@ -1,7 +1,8 @@
 import sys
 from flask import Flask, request
 from flask_socketio import SocketIO
-from flask_socketio import emit
+from flask_socketio import emit, send, join_room, leave_room
+from Admin import AdminSetup
 from Game import Game
 # For emitting to specific client use it's sid on the room parameter of emit
 app = Flask(__name__,
@@ -19,64 +20,49 @@ else:
 
 PanoGame = Game()
 
+AdminSetup(app, socketio)
 
-@ app.route("/")
+
+@ app.route("/", methods=["GET", "POST"])
 def hello():
-    return app.send_static_file('sync.html')
+    if request.method == 'POST':
+        return app.send_static_file('lobby.html')
+    return app.send_static_file('index.html')
 
 
-def emitUpdateValue():
-    emit('stateupdate', PanoGame.getValue(), broadcast=True)
+@socketio.on('join-lobby')
+def join_lobby(username):
+    if isinstance(username, str):
+        if len(username) < 5:
+            send('Username is too short!')
+            emit('invalid-join')
+            return
+        if PanoGame.addPlayer(request.sid, username):
+            join_room('lobby')
+            send('Successfully Joined!')
+            emit('valid-join')
+            emit('lobby-update', PanoGame.getConnected(), room='lobby')
+        else:
+            send('That username is already taken!')
+            emit('invalid-join')
 
 
-def emitUpdateConnected():
-    emit('connectedupdate', PanoGame.getConnected(), broadcast=True)
-
-
-@socketio.on('minus')
-def applyminus():
-    PanoGame.minus()
-    emitUpdateValue()
-
-
-@socketio.on('plus')
-def applyplus():
-    PanoGame.plus()
-    emitUpdateValue()
+@socketio.on('leave-lobby')
+def leave_lobby(_):
+    emit('lobby-update', PanoGame.getConnected(), room='lobby')
+    leave_room('lobby')
 
 
 @socketio.on('connect')
-def on_connect():
-    PanoGame.addPlayer(request.sid)
-    emitUpdateConnected()
-    emit('stateupdate', PanoGame.getValue(), broadcast=False)
-    # For whoever connected
+def test_connect():
+    print('Client Connected', file=sys.stderr)
 
 
 @socketio.on('disconnect')
-def on_disconnect():
-    PanoGame.removePlayer(request.sid)
-    emitUpdateConnected()
-
-# chatroom test
-# @ app.route("/")
-# def hello():
-#     return app.send_static_file('index.html')
-#
-#
-# @ socketio.on('chat message')
-# def on_chat_message(msg):
-#     emit('chat message', msg, broadcast=True)
-#
-#
-# @ socketio.on('connect')
-# def on_connect():
-#     print('A user connected', file=sys.stderr)
-#
-#
-# @ socketio.on('disconnect')
-# def on_disconnect():
-#     print('A user connected', file=sys.stderr)
+def test_disconnect():
+    # Player is automatically removed from lobby if he dces
+    PanoGame.removePlayer(request.sid)  # Check if needs to be removed
+    emit('lobby-update', PanoGame.getConnected(), room='lobby')  # Emit update
 
 
 if __name__ == '__main__':

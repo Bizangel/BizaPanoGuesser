@@ -1,6 +1,6 @@
 import requests,json,ast,shapefile
-from countryFilter import getRandomLatLing
-from PanoDownloader import download_pano
+from RandomPanoDownloader.countryFilter import getRandomLatLing
+from RandomPanoDownloader.PanoDownloader import download_pano
 from random import choice as randomChoice
 
 def getPanoFromCountryCode(countryCode=None,outdoors=False):

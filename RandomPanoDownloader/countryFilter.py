@@ -2,7 +2,7 @@ import os
 import random
 import sys
 import shapefile  # pip install pyshp
-
+from pathlib import Path
 
 def getRandomLatLing(country=None, disp=False):
     def point_inside_polygon(x, y, poly):
@@ -23,7 +23,7 @@ def getRandomLatLing(country=None, disp=False):
 
     if disp:
         print("Loading borders")
-    shape_file = "TM_WORLD_BORDERS-0.3.shp"
+    shape_file = str(( (Path(__file__).parent / 'WorldBorders') / 'TM_WORLD_BORDERS-0.3.shp').absolute())
     if not os.path.exists(shape_file):
         print(
             "Cannot find " + shape_file + ". Please download it from "

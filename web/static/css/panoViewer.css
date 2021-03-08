@@ -1,0 +1,38 @@
+body {
+    top: 0;
+    left: 0;
+    margin: 0 0 0 0;
+
+}
+
+#panorama {
+    width: 100vw;
+    height: 100vh;
+}
+
+#guess-box-container{
+    position: absolute;
+        bottom: 0;
+        z-index: 2;
+        text-align: center;
+        width: 100%;
+        padding-bottom: 20px;
+}
+
+.modal-body{
+    width: 100%;
+    height: 100%;
+}
+
+.modal-content{
+    width: 60vw;
+    height: 70vh;
+}
+/* #mapcontainer{
+    width: 100%;
+    height: 100%;
+} */
+#mapid{
+    width: 55vw;
+    height: 50vh;
+}

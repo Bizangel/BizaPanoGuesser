@@ -1,5 +1,5 @@
-import streetview
-from cropper import fix_cropping
+import RandomPanoDownloader.streetview as streetview
+from RandomPanoDownloader.cropper import fix_cropping
 # panoids = streetview.panoids(lat=40.75388056, lon=-73.99697222)
 # panoid = panoids[0]['panoid']
 
@@ -9,12 +9,12 @@ from cropper import fix_cropping
 # panoid = 'AF1QipOIL6HKNUUnQcf0ofxVfI2VqWGYLh7gUJRr3HWy'
 # panoid = 'GudWKQqeYveN-0QkBkP03w'
 
-def download_pano(panoid, filename):
-    panorama = streetview.download_panorama_v3(panoid, zoom=3, disp=False, filename=filename, alternate=False)
+def download_pano(panoid, filename, zoom=3):
+    panorama = streetview.download_panorama_v3(panoid, zoom=zoom, disp=False, filename=filename, alternate=False)
     if panorama: # Worked downloading
         pass
     else:
-        panorama = streetview.download_panorama_v3(panoid, zoom=3, disp=False, filename=filename, alternate=True)
+        panorama = streetview.download_panorama_v3(panoid, zoom=zoom, disp=False, filename=filename, alternate=True)
         if not panorama:
             raise(ValueError('Could not fetch Panorama with the given ID'))
         fix_cropping(filename)

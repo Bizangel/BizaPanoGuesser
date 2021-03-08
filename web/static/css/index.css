@@ -1,0 +1,8 @@
+
+html, body {
+    height: 100%;
+}
+#lobby-intro-card{
+    width: 600px;
+    margin: 0 auto ;
+}
