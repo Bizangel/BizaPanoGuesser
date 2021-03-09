@@ -6,8 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobby</title>
 
+  <script
+  src="https://code.jquery.com/jquery-3.6.0.min.js"
+  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+  crossorigin="anonymous"></script>
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+
+  <!--  Pannelum -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
   <!--  Font awesome -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.1/css/all.css">
@@ -18,6 +26,16 @@
   <link rel="stylesheet" href="css/index.css">
   <script src="/js/socket.io.min.js"></script>
 
+  <!-- Leaflet JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+crossorigin=""/>
+ <!-- Make sure you put this AFTER Leaflet's CSS -->
+   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+   crossorigin=""></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.geodesic"></script>
   <!-- Jquery
   <script
   src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -30,16 +48,18 @@
       background-image: url('panos/background.png');
       background-repeat: no-repeat;
       background-attachment: fixed;
-     background-size: 100% 100%;
+      background-size: 100% 100%;
     }
 </style>
 </head>
 <body>
+    <div class="wrapper container" id="lobby-card-container">
+
 
     <div class="row h-100" id="lobby-intro-card-container">
         <div class="col-sm-12 align-self-center">
-            <div class="row h-100">
-               <div class="col-sm-12 my-auto">
+            <div class="row h-100" >
+               <div class="col-sm-12 my-auto" >
                    <!-- Join Card -->
                    <div class="card" id="lobby-intro-card">
 
@@ -58,7 +78,10 @@
                        <h5 class="card-title">Lobby:</h5>
                        <p class="card-text" >Waiting for the host to start... </p>
 
-                       <div id="lobby-div-target"> </div>
+                       <div id="lobby-div-target">
+                           <ul class="list-group" id="lobby-players-targets">
+                        </ul>
+                       </div>
 
                      </div>
 
@@ -72,7 +95,73 @@
         </div>
     </div>
 
+
+
+
+    </div>
+
+
+    <div id="panorama" style="display: none;">
+        <div id="guess-box-container">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mapModal">
+                <i class="fas fa-map-marker-alt"></i>   Guess!
+            </button>
+        </div>
+
+        <div id="top-ui-container" >
+            <div id="topLeftUi">
+                <table class="table table-sm table-hover table-dark" id="LeaderboardTable">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Leaderboard</th>
+                      <th scope="col"><i class="fas fa-trophy"></i></th>
+                      <th> </th>
+                    </tr>
+                  </thead>
+                  <tbody id="LeaderboardTable-Body">
+                  </tbody>
+                </table>
+            </div>
+            <div> </div>
+            <div id="topRightUi">
+                <h2 id="countdownWrapper">
+                    <span class="badge bg-primary float-right" id="countDownDisplay">ss</span>
+                </h2>
+                <h4> <span class="badge rounded-pill bg-secondary">Round 3/10</span></h4>
+            </div>
+
+
+        </div>
+
+
+
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Make your Guess!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+             <div id="mapcontainer">
+                 <div id="mapid"></div>
+             </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="js/index.js"></script>
     <script src="js/lobby.js"></script>
+    <script src="js/panoViewer.js"></script>
+
 </body>
 </html>

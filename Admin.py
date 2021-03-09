@@ -1,7 +1,7 @@
 import sys
 import string
 import secrets
-from flask import request, render_template
+from flask import request, render_template, current_app
 
 
 def generateToken(n):
@@ -9,7 +9,7 @@ def generateToken(n):
     return ''.join(secrets.choice(alphabet) for i in range(n))
 
 
-def AdminSetup(app, socketio):
+def AdminSetup(app, socketio, PanoGame):
     AdminPass = generateToken(25)
     print('AdminPass=' + AdminPass, file=sys.stderr)
 
@@ -25,6 +25,20 @@ def AdminSetup(app, socketio):
                                    authorized=auth, token=AdminPass)
         return app.send_static_file('admin.html')
 
+    @ socketio.on('admin-startGame')
+    def adminStartGame(json):
+        if isinstance(json, dict):
+            if json.get('pwd', None) != AdminPass:
+                return
+
+            PanoGame.startGame()
+
+    @socketio.on('admin-endRound')
+    def adminEndRound(json):
+        if isinstance(json, dict):
+            if json.get('pwd', None) != AdminPass:
+                return
+
     @ socketio.on('admin-debug')
     def debugCommand(json):
         if isinstance(json, dict):
@@ -32,4 +46,3 @@ def AdminSetup(app, socketio):
                 return
 
             print('access to debug', file=sys.stderr)
-            print()

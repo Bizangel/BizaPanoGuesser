@@ -1,8 +1,22 @@
-async function getLobbyHTML(){
-    var lobbyhtml = await (await fetch('lobby.html')).text()
-    document.getElementById('lobby-div-target').innerHTML = lobbyhtml
+const colors = {
+    'aqua': '#18f4fe',
+    'black':'#434343',
+    'blue':'#358acd',
+    'brown':'#aa5a3e',
+    'deep_blue':'#0507ff',
+    'green':'#33b22c',
+    'orange':'#ff7617',
+    'purple':'#9b31cd',
+    'red':'#ce3a4f',
+    'yellow':'#cec53a',
 }
-getLobbyHTML()
+
+// How to fetch an HTML asynchronizally, not really needed here
+// async function getLobbyHTML(){
+//     var lobbyhtml = await (await fetch('lobby.html')).text()
+//     document.getElementById('lobby-div-target').innerHTML = lobbyhtml
+// }
+// getLobbyHTML()
 
 
 socket.on('lobby-update', (res) =>{
@@ -14,10 +28,18 @@ socket.on('lobby-update', (res) =>{
     }
 
     // Insert new child for every response
-    for (var property in res) {
+    for (var username in res) {
         var element = document.createElement('li')
         element.classList.add('list-group-item');
-        element.innerHTML = property + '-' + res[property]
+        // element.innerHTML = username + '-' + res[property]
+        element.innerHTML = `
+        ${username} <span class="badge" style="background-color: ${colors[res[username]]};">${res[username]}</span>
+        `
         targetNode.appendChild(element)
     }
+})
+
+socket.on('round-end',(res)=>{
+    console.log('received round end')
+    console.log(res)
 })

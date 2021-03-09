@@ -2,9 +2,14 @@ from RandomPanoDownloader.randomizer import getPanoFromCountryCode
 from RandomPanoDownloader.PanoDownloader import download_pano
 from pathlib import Path
 from multiprocessing import Pool
+from random import choice
+from time import sleep
+from flask_socketio import emit
+import sys
 
 
 class Panorama:
+
     def __init__(self, panoid, lat, long, loc_name):
         self.panoid = panoid
         self.lat = lat
@@ -22,6 +27,9 @@ def onPanoramaLoaded():
 
 
 class Game:
+    Colors = ['aqua', 'black', 'blue', 'brown', 'deep_blue', 'green',
+              'orange', 'purple', 'red', 'yellow']
+
     def __init__(self):
         self.value = 0
         self.round = 1
@@ -38,20 +46,32 @@ class Game:
         self.connected = {}  # Dict that maps sid -> username
         self.colors = {}  # Dict that maps sid -> colors
         self.next_panorama = None
+        self.scores = {}
+
+    def startGame(self, socketioapp, appcontext):
+        pass
+
+    def endRound(self):
+        pass
 
     def getNextPanorama():
         filename = 'currentPano.png'
         filepath = str((Path(__file__).parent / 'web'
                         / 'static' / 'panos' / filename).absolute())
         pool = Pool(processes=1)
-        pool.apply_async(fetchNextPanorama,
-                         [filepath], callback=onPanoramaLoaded)
+        pool.apply_async(async_postpone,
+                         [10], callback=onPanoramaLoaded)
 
     def addPlayer(self, sid, username):
         '''Adds a player to the game, with the given username'''
         if username not in self.connected.values():
             self.connected[sid] = username
-            self.colors[sid] = 'red'
+            notchosen = [color for color in Game.Colors
+                         if color not in self.colors.values()]
+            if len(notchosen) == 0:
+                self.colors[sid] = choice(Game.Colors)  # Repeat colors
+            else:
+                self.colors[sid] = choice(notchosen)
             return True
         return False
 
@@ -81,7 +101,3 @@ class Game:
             newdict[self.connected[sid]] = self.colors[sid]
 
         return newdict
-
-
-# def fetchNextPanorama(filepath):
-#     download_pano(panoid, filepath)

@@ -6,16 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
 
-  <script src="/socket.io.min.js"></script>
+  <script src="/js/socket.io.min.js"></script>
 </head>
 <body>
     {% if authorized %}
-    Authorized!
+    KEEP THIS WINDOW OPEN AT ALL TIMES!!!!
     <div id="tokenHolder" token={{ token }}></div>
 
+    <button type="button" id="startGame">Start Game</button>
     <button type="button" id="debugButton">Debug</button>
 
-    <script src="adminPanel.js"> </script>
+    <script src="/js/adminPanel.js"> </script>
     {% else %}
     Unautorized!
     {% endif %}

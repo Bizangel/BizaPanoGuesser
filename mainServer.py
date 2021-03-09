@@ -20,7 +20,7 @@ else:
 
 PanoGame = Game()
 
-AdminSetup(app, socketio)
+AdminSetup(app, socketio, PanoGame)
 
 
 @ app.route("/", methods=["GET", "POST"])
