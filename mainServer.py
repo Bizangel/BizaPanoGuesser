@@ -37,6 +37,11 @@ def join_lobby(username):
             send('Username is too short!')
             emit('invalid-join')
             return
+
+        if username == 'SOLUTION' or username == 'ROUND':
+            send('Invalid Name!')
+            emit('invalid-join')
+
         if PanoGame.addPlayer(request.sid, username):
             join_room('lobby')
             send('Successfully Joined!')

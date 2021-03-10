@@ -1,4 +1,29 @@
 let userinfo = {}
+
+let myusername = 'Notrichi' // Update username on round entry
+
+const mapbox_public_token = 'pk.eyJ1IjoiYml6YW5nZWwiLCJhIjoiY2tscWtuYzJnMDE5aTJwbTc4Nms5dGw1aCJ9.gIsDo80nwpvQZIT36f8Tqg';
+// const mymap = L.map('mapid').setView([51.505, -0.09], 13);
+const mymap = L.map('mapid').setView([0, 0], 2);
+
+L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+  maxZoom: 18,
+  id: 'mapbox/streets-v11',
+  tileSize: 512,
+  zoomOffset: -1,
+  accessToken: mapbox_public_token
+}).addTo(mymap);
+
+
+
+const playerGuess = L.marker([41.56203190200195,-38.87721477590272],{icon: markerAqua}).addTo(mymap);
+function onMapClick (e) {
+  playerGuess.setLatLng(e.latlng);
+}
+mymap.on('click', onMapClick);
+
+
 function doCountdown(countDownDate){
     // Update the count down every 1 second
     var CountDownInterval = setInterval(function() {
@@ -92,23 +117,45 @@ function updateCheckState(username,state){
 }
 
 
+let mapModalJquery = $('#mapModal');
+
+function preventHide(e) {
+    e.preventDefault();
+}
+
+// if you have buttons that are allowed to close the modal
+mapModalJquery.find('[data-bs-dismiss="modal"]').click(() =>{
+    unlockModalClose()
+    mapModalJquery.modal('hide')
+    lockModalClose()
+});
+
+function lockModalClose() {
+    mapModalJquery.on('hide.bs.modal', preventHide);
+}
+
+function unlockModalClose() {
+    mapModalJquery.off('hide.bs.modal', preventHide);
+}
+
 const sampleReveal = {'Mike Towers' : {lat: 45, lng: 56}, 'Notrichi': {lat: 45, lng: 80}, 'Fucking God!': {lat:30 , lng: 56},
 'SOLUTION' : {lat: 61.39146458246076 , lng: 15.89755986088935}}
-// Receives a json mapped from username -> object of {lat: 45, lng: 45}
+// Receives a json mapped from username -> object of {lat: 45, lng: 45, distance: 2000}
 // Also receives an entry called 'SOLUTION', which contains SOL
+let revealLayer = L.layerGroup().addTo(mymap);
 function revealMap(json){
     // Locks the map in, reveals everything
-    var revealLayer = L.layerGroup().addTo(mymap);
     var jsoncolors = userinfo['usercolors']
 
-    $('#mapModal').data('bs.modal',null);
-    $('#mapModal').modal({backdrop: 'static', keyboard: false})
-    $('#mapModal').modal('show')
+    lockModalClose()
+    mapModalJquery.modal('show')
 
     var rightLocation = json['SOLUTION']
     var rightLocation_marker = L.marker(rightLocation).addTo(revealLayer);
 
     setTimeout(()=>{
+        mymap.off('click', onMapClick); // Disable map guessing
+        mymap.removeLayer(playerGuess)// Remove old marker
         var mylist = [rightLocation]
         for (var username in json) {
             if (username !== 'SOLUTION'){
@@ -116,13 +163,22 @@ function revealMap(json){
                 var playerlatlng = json[username]
 
                 lineOpts = {color: playercolor}
-                var playerMarker = L.marker(playerlatlng,{icon: playerIcon}).addTo(revealLayer);
-                playerMarker.bindPopup(username)
-                var geodesic = new L.Geodesic([playerlatlng, rightLocation],lineOpts).addTo(revealLayer);
+                var playerMarker = L.marker(playerlatlng,{icon: MarkerColors[playercolor]}).addTo(revealLayer);
+
+                var geodesic = new L.Geodesic([playerlatlng, rightLocation],lineOpts)
+                geodesic.addTo(revealLayer);
                 mylist.push(playerlatlng)
+
+
+                var distance = Math.floor(geodesic.distance(playerlatlng,rightLocation)/1000)
+
+                playerMarker.bindPopup(username + '\n' + distance + 'km')
+                if (username == myusername){
+                    document.getElementById('mapModalTitle').innerHTML = `You were ${distance} kilometers away!`
+                }
             }
         }
-        console.log(mylist)
+
         // mymap.fitBounds([rightLocation, mylist[1] ]);
         mymap.fitBounds(mylist)
     },1000)
@@ -131,11 +187,57 @@ function revealMap(json){
 
 // Cleans everything back to next round as normal
 function clearNextRound(){
+    mymap.removeLayer(revealLayer)
+    mymap.on('click', onMapClick);
+    playerGuess.setLatLng([41.56203190200195,-38.87721477590272])
+    playerGuess.addTo(mymap)
 
+    unlockModalClose()
+    mapModalJquery.modal('hide')
+    mymap.setView([0, 0], 2);
+
+    document.getElementById('mapModalTitle').innerHTML = 'Make your Guess!'
 }
 
-var n = document.getElementById("parent");
+function setPlayerMarker(color){
+    playerGuess.setIcon(MarkerColors[color])
+}
 
+var mapModalVar = document.getElementById('mapModal')
+mapModalVar.addEventListener('shown.bs.modal', function (event) {
+    // setTimeout(function(){ mymap.invalidateSize()}, 200);
+    mymap.invalidateSize();
+})
+
+
+function TogglePlayerGuess(){
+    var lockguessbutton = document.getElementById('guesslockbutton')
+    if (lockguessbutton.innerHTML.includes('Unlock')){
+        UnlockPlayerGuess()
+    } else {
+        LockPlayerGuess()
+    }
+}
+
+// Emit guess lock
+document.getElementById('guesslockbutton').addEventListener('click', TogglePlayerGuess)
+
+function LockPlayerGuess(){
+    var lockguessbutton = document.getElementById('guesslockbutton')
+    lockguessbutton.className = 'btn btn-success'
+    mymap.off('click', onMapClick); //Disable click move
+    lockguessbutton.innerHTML = 'Unlock your Guess'
+}
+
+function UnlockPlayerGuess(){
+    var lockguessbutton = document.getElementById('guesslockbutton')
+    lockguessbutton.className = 'btn btn-primary'
+
+    mymap.on('click', onMapClick); //Disable click move
+    lockguessbutton.innerHTML = 'Lock your Guess!'
+
+    // Emit guess unlock
+}
 
 function deepClearDelete(node) {
   while (node.hasChildNodes()) {
@@ -153,13 +255,13 @@ function recursiveClear(node) {
 
 var panorama = pannellum.viewer('panorama', {
     "type": "equirectangular",
-    "panorama": "/panos/currentPano.png",
+    "panorama": "/panos/currentPano.png?00001",
     "autoLoad": true,
     "showFullscreenCtrl": false,
     "showZoomCtrl": false,
 });
 
-function nextPanorama(){
+function reloadPanorama(){
     document.querySelector('#panorama').innerHTML  = ''
 
     panorama = pannellum.viewer('panorama', {
@@ -171,46 +273,3 @@ function nextPanorama(){
     });
 
 }
-
-
-const mapbox_public_token = 'pk.eyJ1IjoiYml6YW5nZWwiLCJhIjoiY2tscWtuYzJnMDE5aTJwbTc4Nms5dGw1aCJ9.gIsDo80nwpvQZIT36f8Tqg';
-// const mymap = L.map('mapid').setView([51.505, -0.09], 13);
-const mymap = L.map('mapid').setView([0, 0], 2);
-
-L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-  maxZoom: 18,
-  id: 'mapbox/streets-v11',
-  tileSize: 512,
-  zoomOffset: -1,
-  accessToken: mapbox_public_token
-}).addTo(mymap);
-
-var playerIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-const playerGuess = L.marker([51.5, -0.09],{icon: playerIcon}).addTo(mymap);
-function onMapClick (e) {
-  playerGuess.setLatLng(e.latlng);
-}
-
-mymap.on('click', onMapClick);
-
-
-var mapModal = document.getElementById('mapModal')
-mapModal.addEventListener('shown.bs.modal', function (event) {
-    // setTimeout(function(){ mymap.invalidateSize()}, 200);
-    mymap.invalidateSize();
-})
-
-
-// const solLat = 61.39146458246076
-// const solLong = 15.89755986088935
-//
-// const playerColor = '#fcf403'
