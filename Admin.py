@@ -2,6 +2,7 @@ import sys
 import string
 import secrets
 from flask import request, render_template, current_app
+from flask_socketio import emit
 
 
 def generateToken(n):
@@ -25,21 +26,26 @@ def AdminSetup(app, socketio, PanoGame):
                                    authorized=auth, token=AdminPass)
         return app.send_static_file('admin.html')
 
-    @ socketio.on('admin-startGame')
+    @socketio.on('connect', namespace='/admin')
+    def adminConnect():
+        print('admin connected', file=sys.stderr)
+
+    @ socketio.on('admin-startGame', namespace="/admin")
     def adminStartGame(json):
         if isinstance(json, dict):
             if json.get('pwd', None) != AdminPass:
                 return
 
+            # Get everyone into the game
             PanoGame.startGame()
 
-    @socketio.on('admin-endRound')
+    @socketio.on('admin-endRound', namespace="/admin")
     def adminEndRound(json):
         if isinstance(json, dict):
             if json.get('pwd', None) != AdminPass:
                 return
 
-    @ socketio.on('admin-debug')
+    @ socketio.on('admin-debug', namespace='/admin')
     def debugCommand(json):
         if isinstance(json, dict):
             if json.get('pwd', None) != AdminPass:

@@ -88,3 +88,76 @@ html, body {
     width: 55vw;
     height: 50vh;
 }
+/*
+#leaderboard-container{
+
+    background-color: red;
+} */
+
+#leaderboard-container {
+    background: linear-gradient(50deg, #894bd0, #1c57ec, #1cece4, #50eeaa);
+    background-size: 800% 800%;
+
+    width: 100vw;
+    height: 100vh;
+
+    display: grid;
+    grid-template-rows: 5vh 10vh 35vh 50vh;
+    -webkit-animation: leaderboardbg 21s ease infinite;
+    -moz-animation: leaderboardbg 21s ease infinite;
+    animation: leaderboardbg 21s ease infinite;
+}
+
+body {
+  overscroll-behavior-y: none;
+}
+
+@-webkit-keyframes leaderboardbg {
+    0%{background-position:0% 87%}
+    50%{background-position:100% 14%}
+    100%{background-position:0% 87%}
+}
+@-moz-keyframes leaderboardbg {
+    0%{background-position:0% 87%}
+    50%{background-position:100% 14%}
+    100%{background-position:0% 87%}
+}
+@keyframes leaderboardbg {
+    0%{background-position:0% 87%}
+    50%{background-position:100% 14%}
+    100%{background-position:0% 87%}
+}
+
+#colcontainer{
+    display: grid;
+    grid-template-columns: 33% 34% 33%;
+    /* place-items: end end; */
+    align-items: end;
+}
+
+.colinside-container{
+    display: grid;
+    place-items: center center;
+    /* align-items: center; */
+    color: white;
+    font-family: "Times New Roman";
+    font-size: 18pt;
+    justify-content: center;
+}
+
+.colinside-container > p {
+    margin: auto;
+}
+
+#colfirst-container{
+    background-color:  red;
+    height: 100%;
+}
+#colsecond-container{
+    background-color:  blue;
+    height: 50%;
+}
+#colthird-container{
+    background-color:  yellow;
+    height: 25%;
+}

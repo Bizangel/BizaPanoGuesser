@@ -56,7 +56,7 @@ function doCountdown(countDownDate){
     }, 1000);
 }
 
-displayPanorama()
+
 var seconds = 90
 doCountdown(new Date(Date.now() + seconds*1000))
 
@@ -65,11 +65,16 @@ const samplecolorboard = {'Mike Towers' : 'brown', 'Notrichi': 'black', 'Fucking
 updateLeaderboard(sampleLeaderboard, samplecolorboard)
 
 
-function updateLeaderboard(leaderjson, colorsjson){ //self.scores maps 'username' -> score
+function updateLeaderboard(leaderjson, colorsjson, endLeaderboard = false){ //self.scores maps 'username' -> score
     // Sorts scores descendentally
+
+
     var sorted = Object.entries(leaderjson).sort(([,b],[,a]) => a-b).reduce((r, [k, v]) => ({ ...r, [k]: v }), {});
 
     var LeaderboardTable = document.getElementById('LeaderboardTable-Body')
+    if (endLeaderboard){
+        var LeaderboardTable = document.getElementById('end-LeaderboardTable-Body')
+    }
     deepClearDelete(LeaderboardTable)
 
     userinfo['usercolors'] = colorsjson
@@ -81,25 +86,38 @@ function updateLeaderboard(leaderjson, colorsjson){ //self.scores maps 'username
         var number = document.createElement('th')
         var userdisplay = document.createElement('td')
         var userscoredisplay = document.createElement('td')
-        var notcheck = document.createElement('td')
+
+        if (!endLeaderboard){
+            var notcheck = document.createElement('td')
+        }
+
 
         number.setAttribute('scope','row')
         number.innerHTML = i;
         userdisplay.innerHTML = username;
 
         userscoredisplay.innerHTML = score;
-        notcheck.innerHTML = `
-        <i class="fas fa-times" id="checkmark-${username}"></i>
-        `
+
         number.style.color = usercolor;
         userdisplay.style.color = usercolor;
         userscoredisplay.style.color = usercolor;
-        notcheck.style.color = usercolor;
+
+        if (!endLeaderboard){
+            notcheck.innerHTML = `
+            <i class="fas fa-times" id="checkmark-${username}"></i>
+            `
+            notcheck.style.color = usercolor;
+        }
+
+
 
         tablerow.appendChild(number)
         tablerow.appendChild(userdisplay)
         tablerow.appendChild(userscoredisplay)
-        tablerow.appendChild(notcheck)
+        if (!endLeaderboard){
+            tablerow.appendChild(notcheck)
+        }
+
 
         LeaderboardTable.appendChild(tablerow)
         i++;

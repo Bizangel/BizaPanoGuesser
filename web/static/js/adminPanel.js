@@ -1,4 +1,4 @@
-var socket = io();
+var socket = io('/admin');
 
 const AdminToken = document.getElementById('tokenHolder').getAttribute('token')
 

@@ -3,6 +3,7 @@ from flask import Flask, request
 from flask_socketio import SocketIO
 from flask_socketio import emit, send, join_room, leave_room
 from Admin import AdminSetup
+from Background import BackgroundSetup
 from Game import Game
 # For emitting to specific client use it's sid on the room parameter of emit
 app = Flask(__name__,
@@ -21,6 +22,7 @@ else:
 PanoGame = Game()
 
 AdminSetup(app, socketio, PanoGame)
+BackgroundSetup(app, socketio, PanoGame)
 
 
 @ app.route("/", methods=["GET", "POST"])
@@ -53,9 +55,11 @@ def join_lobby(username):
 
 
 @socketio.on('leave-lobby')
-def leave_lobby(_):
-    emit('lobby-update', PanoGame.getConnected(), room='lobby')
+def leave_lobby():
     leave_room('lobby')
+    PanoGame.removePlayer(request.sid)  # Check if needs to be removed
+    emit('lobby-update', PanoGame.getConnected(), room='lobby')
+    send('You have left the lobby!')
 
 
 @socketio.on('connect')
@@ -72,4 +76,4 @@ def test_disconnect():
 
 if __name__ == '__main__':
     SYNC_VALUE = 0
-    socketio.run(app, debug=True, port=6789)
+    socketio.run(app, debug=False, port=6789)

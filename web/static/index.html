@@ -79,6 +79,7 @@ crossorigin=""/>
                        <div id="lobby-div-target">
                            <ul class="list-group" id="lobby-players-targets">
                         </ul>
+                        <button class="btn btn-danger" style="margin-top: 10px;" id="leavelobby-button" >Leave Lobby</button>
                        </div>
 
                      </div>
@@ -156,11 +157,61 @@ crossorigin=""/>
       </div>
     </div>
 
+    <div style="display: none;" id="leaderboard-container">
+
+        <div id="title-display" style="display:grid; place-items: center center; justify-content: center; text-align: center;">
+            <h1 style="color: white; margin: auto;"> And the winner is...: Le jug </h1>
+        </div>
+        <div style="display: grid; grid-template-columns: 35vw 30vw 35vw;">
+            <div></div>
+            <div style="display:grid; grid-template-columns: 33% 34% 33%;">
+                <div style="text-align: center; margin-top: 10px; color: white;"><h2>2nd</h2></div>
+                <div style="text-align: center; margin-top: 10px; color: white;"><h1>1st</h2></div>
+                <div style="text-align: center; margin-top: 10px; color: white;"><h2>3rd</h2></div>
+            </div>
+            <div> </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 35vw 30vw 35vw;" >
+
+            <div></div>
+            <div id="colcontainer" >
+                <div id="colsecond-container" class="colinside-container">
+                    <p id="secondname"></p>
+                </div>
+                <div id="colfirst-container" class="colinside-container">
+                    <p id="firstname"></p>
+                </div>
+                <div id="colthird-container" class="colinside-container">
+                    <p id="thirdname"></p>
+                </div>
+            </div>
+            <div></div>
+        </div>
+
+        <div style="display:grid; place-items: center center; grid-template-columns: auto auto auto;">
+            <div></div>
+            <table class="table table-sm table-hover table-dark" id="end-LeaderboardTable">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Leaderboard</th>
+                  <th scope="col"><i class="fas fa-trophy"> Score <i class="fas fa-trophy"></i></th>
+                </tr>
+              </thead>
+              <tbody id="end-LeaderboardTable-Body">
+              </tbody>
+          </table>
+          <div></div>
+        </div>
+    </div>
+
     <script src="js/index.js"></script>
     <script src="js/lobby.js"></script>
 
     <script src="js/markers.js"></script>
     <script src="js/panoViewer.js"></script>
+    <script src="js/leaderboard.js"></script>
 
 </body>
 </html>

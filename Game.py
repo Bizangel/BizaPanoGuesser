@@ -1,11 +1,5 @@
-from RandomPanoDownloader.randomizer import getPanoFromCountryCode
-from RandomPanoDownloader.PanoDownloader import download_pano
-from pathlib import Path
-from multiprocessing import Pool
+
 from random import choice
-from time import sleep
-from flask_socketio import emit
-import sys
 
 
 class Panorama:
@@ -22,45 +16,30 @@ class Panorama:
             self.lat, self.long, self.loc_name)
 
 
-def onPanoramaLoaded():
-    pass
-
-
 class Game:
     Colors = ['aqua', 'black', 'blue', 'brown', 'deep_blue', 'green',
               'orange', 'purple', 'red', 'yellow']
 
     def __init__(self):
         self.value = 0
-        self.round = 1
+        self.round = -1  # Hasn't started
 
-        # Get initial base panorama
-        # panoid, lat, long, loc_name = getPanoFromCountryCode(
-        #     countryCode=None, outdoors=True)  # Truly Fully random
-        panoid = '1SoWh9XHl1s6X7ACZXQvxw'
-        lat, long = 61.39146458246076, 15.89755986088935
-        loc_name = 'Gavleborg Country'
+        self.nextPanoReady = False  # Consume on each round
 
-        self.panorama = Panorama(panoid, lat, long, loc_name)
-        print(self.panorama)
+        # self.panorama = Panorama(panoid, lat, long, loc_name)
         self.connected = {}  # Dict that maps sid -> username
         self.colors = {}  # Dict that maps sid -> colors
         self.next_panorama = None
         self.scores = {}
+
+    def setPanorama(panorama):
+        pass
 
     def startGame(self, socketioapp, appcontext):
         pass
 
     def endRound(self):
         pass
-
-    def getNextPanorama():
-        filename = 'currentPano.png'
-        filepath = str((Path(__file__).parent / 'web'
-                        / 'static' / 'panos' / filename).absolute())
-        pool = Pool(processes=1)
-        pool.apply_async(async_postpone,
-                         [10], callback=onPanoramaLoaded)
 
     def addPlayer(self, sid, username):
         '''Adds a player to the game, with the given username'''
