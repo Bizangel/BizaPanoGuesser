@@ -1,6 +1,5 @@
 let userinfo = {}
 
-let myusername = 'Notrichi' // Update username on round entry
 
 const mapbox_public_token = 'pk.eyJ1IjoiYml6YW5nZWwiLCJhIjoiY2tscWtuYzJnMDE5aTJwbTc4Nms5dGw1aCJ9.gIsDo80nwpvQZIT36f8Tqg';
 // const mymap = L.map('mapid').setView([51.505, -0.09], 13);
@@ -57,15 +56,15 @@ function doCountdown(countDownDate){
 }
 
 
-var seconds = 90
-doCountdown(new Date(Date.now() + seconds*1000))
+// var seconds = 90
+// doCountdown(new Date(Date.now() + seconds*1000))
+//
+// const sampleLeaderboard = {'Mike Towers' : 1000, 'Notrichi': 200, 'Fucking God!': 1500}
+// const samplecolorboard = {'Mike Towers' : 'brown', 'Notrichi': 'black', 'Fucking God!': 'yellow'}
+// updateLeaderboard(sampleLeaderboard, samplecolorboard)
 
-const sampleLeaderboard = {'Mike Towers' : 1000, 'Notrichi': 200, 'Fucking God!': 1500}
-const samplecolorboard = {'Mike Towers' : 'brown', 'Notrichi': 'black', 'Fucking God!': 'yellow'}
-updateLeaderboard(sampleLeaderboard, samplecolorboard)
 
-
-function updateLeaderboard(leaderjson, colorsjson, endLeaderboard = false){ //self.scores maps 'username' -> score
+function updateLeaderboard(leaderjson, endLeaderboard = false){ //self.scores maps 'username' -> score
     // Sorts scores descendentally
 
 
@@ -77,7 +76,7 @@ function updateLeaderboard(leaderjson, colorsjson, endLeaderboard = false){ //se
     }
     deepClearDelete(LeaderboardTable)
 
-    userinfo['usercolors'] = colorsjson
+    var colorsjson = userinfo['usercolors']
     var i = 1
     for (var username in sorted) {
         var score = leaderjson[username]
@@ -156,8 +155,9 @@ function unlockModalClose() {
     mapModalJquery.off('hide.bs.modal', preventHide);
 }
 
-const sampleReveal = {'Mike Towers' : {lat: 45, lng: 56}, 'Notrichi': {lat: 45, lng: 80}, 'Fucking God!': {lat:30 , lng: 56},
-'SOLUTION' : {lat: 61.39146458246076 , lng: 15.89755986088935}}
+// const sampleReveal = {'Mike Towers' : {lat: 45, lng: 56}, 'Notrichi': {lat: 45, lng: 80}, 'Fucking God!': {lat:30 , lng: 56},
+// 'SOLUTION' : {lat: 61.39146458246076 , lng: 15.89755986088935}}
+
 // Receives a json mapped from username -> object of {lat: 45, lng: 45, distance: 2000}
 // Also receives an entry called 'SOLUTION', which contains SOL
 let revealLayer = L.layerGroup().addTo(mymap);
@@ -271,23 +271,58 @@ function recursiveClear(node) {
 }
 
 
-var panorama = pannellum.viewer('panorama', {
+const panoramaViewer = pannellum.viewer('panorama', {
     "type": "equirectangular",
-    "panorama": "/panos/currentPano.png?00001",
     "autoLoad": true,
     "showFullscreenCtrl": false,
     "showZoomCtrl": false,
+    "scenes": {
+
+    }
 });
 
-function reloadPanorama(){
-    document.querySelector('#panorama').innerHTML  = ''
-
-    panorama = pannellum.viewer('panorama', {
+function addNewPano(panostring, round){
+    panoramaViewer.addScene('round' + round, {
         "type": "equirectangular",
-        "panorama": "/panos/nextPano.png",
-        "autoLoad" : true,
-        "showFullscreenCtrl": false,
-        "showZoomCtrl": false,
+        "panorama": '/panos/' + panostring
     });
-
 }
+
+function loadRoundPano(round){
+    panoramaViewer.loadScene('round' + round)
+}
+
+
+
+
+
+
+////// Listener Interactivity
+socket.on('leaderboard-update', json => {
+    updateLeaderboard(json)
+});
+
+socket.on('round-update', json => {
+    // Json contains, totalrounds, round, linkedstring and DATE we're counting to
+    var countdown = new Date(json['countdown']*1000)
+    doCountdown(countdown)
+
+    var round = json['round']
+    var totalrounds = json['totalrounds']
+    document.getElementById('roundDisplay').innerHTML = 'Round' + round + '/' + totalrounds
+
+    addNewPano(json['panostring'],round)
+    loadRoundPano(round)
+    displayPanorama()
+})
+
+/// Called Once per Game.
+socket.on('color-set', json =>{
+    console.log('Colo was set!')
+    userinfo['usercolors'] = json
+})
+
+// socket.on('colortest', json =>{
+//     console.log('Colorrrr test!')
+//     console.log(json)
+// })

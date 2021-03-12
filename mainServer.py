@@ -18,8 +18,10 @@ if len(sys.argv) == 2:
     socketio = SocketIO(app, cors_allowed_origins=ngroktunnel_public_url)
 else:
     socketio = SocketIO(app)
+    # socketio = SocketIO(app, logger=True, engineio_logger=True)
 
-PanoGame = Game()
+
+PanoGame = Game(socketio)
 
 AdminSetup(app, socketio, PanoGame)
 BackgroundSetup(app, socketio, PanoGame)
@@ -50,8 +52,11 @@ def join_lobby(username):
             emit('valid-join')
             emit('lobby-update', PanoGame.getConnected(), room='lobby')
         else:
-            send('That username is already taken!')
-            emit('invalid-join')
+            if PanoGame.InGame():
+                send('There\'s a game already in progress!')
+            else:
+                send('That username is already taken!')
+                emit('invalid-join')
 
 
 @socketio.on('leave-lobby')

@@ -21,7 +21,7 @@ const colors = {
 
 socket.on('lobby-update', (res) =>{
     // Clean every child
-    console.log(res)
+    // console.log(res)
     var targetNode = document.getElementById('lobby-players-targets')
     while (targetNode.firstChild) {
         targetNode.removeChild(targetNode.lastChild);
@@ -37,9 +37,4 @@ socket.on('lobby-update', (res) =>{
         `
         targetNode.appendChild(element)
     }
-})
-
-socket.on('round-end',(res)=>{
-    console.log('received round end')
-    console.log(res)
 })

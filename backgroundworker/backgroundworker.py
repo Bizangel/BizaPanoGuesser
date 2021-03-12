@@ -34,17 +34,35 @@ def connectACK():
 
 
 @ sio.event(namespace='/background')
-def fetchNextPano(data):
-    if isinstance(data, str):
-        if verifyServerOrigin(bytes(data, 'utf-8')):
-            panoid, lat, long, loc_name, countryname = getRandomPanorama(
-                urban=True, indoors=False, countryNumber=None)
+def fetchNextPano(data):  # Receives dict with pwd and filename
+    if isinstance(data, dict):
+        if data.get('pwd', None) is None:
+            print('Invalid dict, without pwd credentials')
+            return
 
+        if verifyServerOrigin(bytes(data['pwd'], 'utf-8')):
+            panoid, lat, long, loc_name, countryname = getRandomPanorama(
+                urban=data['params']['urban'],
+                indoors=data['params']['indoors'],
+                countryNumber=data['params']['countryNumber'])
+
+            print(data['params'])
             print(panoid, lat, long, loc_name, countryname)
             download_pano(panoid, 'downloaded.png')
+
+            # Downloaded move to static
+            srcfile = Path(__file__).parent / 'downloaded.png'
+            dstfile = (Path(__file__).parent.parent / 'web' / 'static'
+                       / 'panos' / data['filename'])
+            #
+            copyfile(srcfile, dstfile)
             pwd = FCrypt.encrypt(bytes(BackgroundPass, 'utf-8'))
             pwd = pwd.decode('utf-8')
-            sio.emit('fetchNextPano-done', pwd, namespace='/background')
+            sio.emit('fetchNextPano-done',
+                     {'pwd': pwd, 'panoid': panoid, 'lat': lat, 'long': long,
+                      'loc_name': loc_name, 'countryname': countryname,
+                      'filename': data['filename']},
+                     namespace='/background')
         else:
             print('unverified origin', data)
     else:

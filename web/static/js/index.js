@@ -23,6 +23,7 @@ socket.on('invalid-join', ()=>{
 
 socket.on('valid-join',()=>{
     displayLobbyStatus()
+    let myusername = document.getElementById('usernameEntry').value;
 })
 
 
@@ -70,6 +71,3 @@ function displayScoreboard(){
     document.getElementById('leaderboard-container').style.display = 'grid'
     document.title = 'Biza\'s Pano Guesser'
 }
-
-// displayScoreboard()
-displayPanorama()

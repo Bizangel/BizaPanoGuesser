@@ -10,12 +10,36 @@
 </head>
 <body>
     {% if authorized %}
-    KEEP THIS WINDOW OPEN AT ALL TIMES!!!!
+    <div id="messageholder"></div>
     <div id="tokenHolder" token={{ token }}></div>
 
-    <button type="button" id="startGame">Start Game</button>
-    <button type="button" id="debugButton">Debug</button>
 
+
+    <input type="checkbox" id="urban">
+    <label for="urban"> Urban panoramas?</label><br>
+
+    <input type="checkbox" id="indoors">
+    <label for="indoors"> Indoors panoramas?</label><br>
+
+    <input type="number" id="countryNumber"></input>
+    <label for="indoors"> Specific country? (Empty for ALL)</label><br>
+
+
+    <!-- MAKE INPUT FOR TOTAL ROUNDS AND ROUND DURATION -->
+    <button type="button" id="setPanoParams">setPanoParams</button> <br>
+
+
+
+    <input type="number" id="roundduration" value="90"></input>
+    <label for="roundduration"> Round Duration (in seconds) (Empty for ALL)</label><br>
+
+    <input type="number" id="totalrounds" value="10"></input>
+    <label for="totalrounds"> Total Rounds </label><br>
+
+    <button type="button" id="startGame">Start Game</button>
+    <button type="button" id="pano-enqueue-button">PreloadPanorama</button>
+    <br>
+    <button type="button" id="debugButton">Debug</button>
     <script src="/js/adminPanel.js"> </script>
     {% else %}
     Unautorized!
