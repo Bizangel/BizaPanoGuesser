@@ -88,6 +88,15 @@ const markerYellow = new L.Icon({
   shadowSize: [41, 41]
 });
 
+const solution_marker = new L.Icon({
+  iconUrl: '/markers/marker-yellow.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
 const MarkerColors = {
     aqua: markerRed,
     black: markerBlack,

@@ -2,7 +2,9 @@ from time import time as epoch_seconds
 from time import sleep
 from random import choice
 import sys
+from vincenty import vincenty as geodistance
 from flask_socketio import emit, join_room, leave_room, socketio
+from Scorer import scorequantifier
 
 
 class Game:
@@ -23,7 +25,10 @@ class Game:
         self.colors = {}  # Dict that maps sid -> colors
         self.scores = {}  # Dict that maps sid -> score
 
+        self.playerGuesses = {}  # Dict that maps sid -> lat lng objects
+
         self.inGame = False
+        self.roundStarted = False
         self.setPanoParameters()  # Set default parameters
 
         # Waiting on pano fetching params
@@ -58,8 +63,58 @@ class Game:
         enc = self.FCrypt.encrypt(bytes(self.BackgroundPass, 'utf-8'))
         self.socketioapp.emit(
             'startRoundCountdown',
-            {'pwd': enc.decode('utf-8'), 'seconds': self.round_duration},
+            {'pwd': enc.decode('utf-8'), 'seconds': self.round_duration,
+             'round': self.round},
             namespace='/background', broadcast=True)
+
+        print('countdown started')
+
+    def endRound(self):
+        '''Ends the round, DOES NOT START NEXT ROUND '''
+
+        self.roundStarted = False
+
+        RevealPano = self.panoramas[self.round]
+        # Make Scores
+        distances = {}
+        sol_lat, sol_lng = RevealPano.lat, RevealPano.long
+
+        # self.loc_name = loc_name
+        # self.country_name = country_name
+        # self.linkedstring = linkedstring
+
+        for sid in self.connected:
+            playerguess = self.playerGuesses.get(sid, None)
+            if playerguess is None:
+                playerguess = {'lat': 41.56203190200195,
+                               'lng': -38.87721477590272}
+                self.playerGuesses[sid] = playerguess  # Set for player display
+
+            playerlatlng = (playerguess['lat'], playerguess['lng'])
+            distances[sid] = geodistance(
+                (sol_lat, sol_lng), playerlatlng)
+
+        increase_scores = scorequantifier(distances)
+        for sid in increase_scores:
+            # Raise each corresponding obtained
+            self.scores[sid] += increase_scores[sid]
+
+        self.socketioapp.emit('leaderboard-update',
+                              self.getScores(), room='lobby',
+                              broadcast=True)
+
+        usersguesses = {self.connected[sid]: self.playerGuesses[sid]
+                        for sid in self.connected}
+        usersguesses['SOLUTION'] = {'lat': sol_lat, 'lng': sol_lng}
+        roundscores = {self.connected[sid]: increase_scores[sid]
+                       for sid in self.connected}
+
+        revealinfo = {
+            'users_guesses': usersguesses,
+            'roundscores': roundscores
+        }
+        self.socketioapp.emit('map-reveal', revealinfo, room='lobby',
+                              broadcast=True)
 
     def InGame(self):
         return self.inGame
@@ -76,7 +131,9 @@ class Game:
         self.inGame = True
         self.total_rounds = total_rounds
         self.round_duration = round_duration
-
+        self.lockGuess = {}  # Maps to username -> True/False
+        for sid in self.connected:
+            self.lockGuess[self.connected[sid]] = False
         # LOCK the colors (not lobby ones)
         self.socketioapp.emit('color-set', self.getConnected(), room='lobby',
                               broadcast=True)  # else /admin
@@ -95,9 +152,13 @@ class Game:
                 and self.inGame):
             print('next round start')
             self.round += 1
-            self.socketioapp.emit('leaderboard-update',
-                                  self.getScores(), room='lobby',
-                                  broadcast=True)
+
+            self.roundStarted = True
+            # Emit at startgame and end round
+            if self.round == 1:  # Only on first round
+                self.socketioapp.emit('leaderboard-update',
+                                      self.getScores(), room='lobby',
+                                      broadcast=True)
 
             roundupdate = {
                 'countdown': round(epoch_seconds()) + self.round_duration,
@@ -161,3 +222,50 @@ class Game:
             newdict[self.connected[sid]] = self.colors[sid]
 
         return newdict
+
+    def guessLock(self, sid, latlng):
+        '''Locks the user guess with the given sid '''
+        if self.inGame and self.roundStarted:
+            if sid in list(self.connected.keys()):
+                # verify latlng proper format
+                if isinstance(latlng, dict):
+                    if (latlng.get('lat', None) is not None and
+                            latlng.get('lng', None) is not None):
+                        # Proper lat long, accept
+                        self.lockGuess[self.connected[sid]] = True
+                        self.playerGuesses[sid] = latlng
+                        # Emit update to everyplayer
+                        self.socketioapp.emit(
+                            'guess-update',
+                            {'user': self.connected[sid], 'status': True},
+                            room='lobby', broadcast=True)
+
+                        # verify if everyone has locked
+                        for player in self.lockGuess:
+                            # If a single one hasn't locked, return
+                            if not self.lockGuess[player]:
+                                return
+                        # If it finishes, finish round
+                        self.endRound()
+
+                else:
+                    return
+            else:
+                return  # you're not in the game
+        else:
+            return  # Game hasn't started
+
+    def guessUnlock(self, sid):
+        '''Unlocks the user guess with the given sid '''
+        if self.inGame and self.roundStarted:
+            if sid in list(self.connected.keys()):
+                self.lockGuess[self.connected[sid]] = False
+                # Emit update to everyplayer
+                self.socketioapp.emit(
+                    'guess-update',
+                    {'user': self.connected[sid], 'status': False},
+                    room='lobby', broadcast=True)
+            else:
+                return  # you're not in the game
+        else:
+            return  # Game hasn't started

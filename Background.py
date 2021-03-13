@@ -104,9 +104,13 @@ def BackgroundSetup(app, socketio, PanoGame):
             return
 
     @socketio.on('startRoundCountdown-done', namespace='/background')
-    def countdowndone(pwd):
-        if isinstance(pwd, str):
-            if (FCrypt.decrypt(bytes(pwd, 'utf-8')).decode('utf-8')
+    def countdowndone(data):
+        if isinstance(data, dict):
+            if data.get('pwd', None) is None:
+                print('Invalid dict, without pwd credentials')
+                return
+
+            if (FCrypt.decrypt(bytes(data['pwd'], 'utf-8')).decode('utf-8')
                     == BackgroundPass):
                 print('Countdown was done Successfully!', file=sys.stderr)
         else:

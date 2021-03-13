@@ -41,14 +41,19 @@ def fetchNextPano(data):  # Receives dict with pwd and filename
             return
 
         if verifyServerOrigin(bytes(data['pwd'], 'utf-8')):
-            panoid, lat, long, loc_name, countryname = getRandomPanorama(
-                urban=data['params']['urban'],
-                indoors=data['params']['indoors'],
-                countryNumber=data['params']['countryNumber'])
+            while True:
+                try:
+                    panoid, lat, long, loc_name, cname = getRandomPanorama(
+                        urban=data['params']['urban'],
+                        indoors=data['params']['indoors'],
+                        countryNumber=data['params']['countryNumber'])
 
-            print(data['params'])
-            print(panoid, lat, long, loc_name, countryname)
-            download_pano(panoid, 'downloaded.png')
+                    print(data['params'])
+                    print(panoid, lat, long, loc_name, cname)
+                    download_pano(panoid, 'downloaded.png')
+                    break
+                except Exception:
+                    continue  # retry again
 
             # Downloaded move to static
             srcfile = Path(__file__).parent / 'downloaded.png'
@@ -60,7 +65,7 @@ def fetchNextPano(data):  # Receives dict with pwd and filename
             pwd = pwd.decode('utf-8')
             sio.emit('fetchNextPano-done',
                      {'pwd': pwd, 'panoid': panoid, 'lat': lat, 'long': long,
-                      'loc_name': loc_name, 'countryname': countryname,
+                      'loc_name': loc_name, 'countryname': cname,
                       'filename': data['filename']},
                      namespace='/background')
         else:
@@ -78,12 +83,15 @@ def startRoundCountdown(data):
 
         if verifyServerOrigin(bytes(data['pwd'], 'utf-8')):
             # Do countdown
+            print('got countdown')
             sleep(data['seconds'])
-
+            print('countdown done!')
             # reply back when done
             pwd = FCrypt.encrypt(bytes(BackgroundPass, 'utf-8'))
             pwd = pwd.decode('utf-8')
-            sio.emit('startRoundCountdown-done', pwd, namespace='/background')
+            sio.emit('startRoundCountdown-done',
+                     {'pwd': pwd,
+                      'round': data['round']}, namespace='/background')
         else:
             print('unverified origin', data)
     else:

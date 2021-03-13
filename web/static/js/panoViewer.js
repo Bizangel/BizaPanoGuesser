@@ -141,11 +141,20 @@ function preventHide(e) {
 }
 
 // if you have buttons that are allowed to close the modal
-mapModalJquery.find('[data-bs-dismiss="modal"]').click(() =>{
-    unlockModalClose()
-    mapModalJquery.modal('hide')
-    lockModalClose()
-});
+function setButtonsLock(){
+    mapModalJquery.find('[data-bs-dismiss="modal"]').click(() =>{
+        unlockModalClose()
+        mapModalJquery.modal('hide')
+        lockModalClose()
+    });
+}
+
+function setButtonsUnlock(){
+    mapModalJquery.find('[data-bs-dismiss="modal"]').click(() =>{
+        unlockModalClose()
+        mapModalJquery.modal('hide')
+    });
+}
 
 function lockModalClose() {
     mapModalJquery.on('hide.bs.modal', preventHide);
@@ -158,18 +167,18 @@ function unlockModalClose() {
 // const sampleReveal = {'Mike Towers' : {lat: 45, lng: 56}, 'Notrichi': {lat: 45, lng: 80}, 'Fucking God!': {lat:30 , lng: 56},
 // 'SOLUTION' : {lat: 61.39146458246076 , lng: 15.89755986088935}}
 
-// Receives a json mapped from username -> object of {lat: 45, lng: 45, distance: 2000}
 // Also receives an entry called 'SOLUTION', which contains SOL
 let revealLayer = L.layerGroup().addTo(mymap);
-function revealMap(json){
+function revealMap(json, scores){
     // Locks the map in, reveals everything
     var jsoncolors = userinfo['usercolors']
 
     lockModalClose()
+    setButtonsLock()
     mapModalJquery.modal('show')
 
     var rightLocation = json['SOLUTION']
-    var rightLocation_marker = L.marker(rightLocation).addTo(revealLayer);
+    var rightLocation_marker = L.marker(rightLocation, {icon: solution_marker}).addTo(revealLayer);
 
     setTimeout(()=>{
         mymap.off('click', onMapClick); // Disable map guessing
@@ -179,7 +188,7 @@ function revealMap(json){
             if (username !== 'SOLUTION'){
                 var playercolor = jsoncolors[username]
                 var playerlatlng = json[username]
-
+                var playerscore = scores[username]
                 lineOpts = {color: playercolor}
                 var playerMarker = L.marker(playerlatlng,{icon: MarkerColors[playercolor]}).addTo(revealLayer);
 
@@ -190,9 +199,9 @@ function revealMap(json){
 
                 var distance = Math.floor(geodesic.distance(playerlatlng,rightLocation)/1000)
 
-                playerMarker.bindPopup(username + '\n' + distance + 'km')
+                playerMarker.bindPopup(username + '\n' + distance + 'km' + ' - ' + playerscore)
                 if (username == myusername){
-                    document.getElementById('mapModalTitle').innerHTML = `You were ${distance} kilometers away!`
+                    document.getElementById('mapModalTitle').innerHTML = `You were ${distance} kilometers away! You get ${playerscore} points!`
                 }
             }
         }
@@ -211,6 +220,7 @@ function clearNextRound(){
     playerGuess.addTo(mymap)
 
     unlockModalClose()
+    setButtonsUnlock()
     mapModalJquery.modal('hide')
     mymap.setView([0, 0], 2);
 
@@ -232,8 +242,11 @@ function TogglePlayerGuess(){
     var lockguessbutton = document.getElementById('guesslockbutton')
     if (lockguessbutton.innerHTML.includes('Unlock')){
         UnlockPlayerGuess()
+        socket.emit('guess-unlock')
     } else {
         LockPlayerGuess()
+        var latlng = playerGuess.getLatLng()
+        socket.emit('guess-lock', {'lat': latlng.lat, 'lng': latlng.lng})
     }
 }
 
@@ -253,8 +266,6 @@ function UnlockPlayerGuess(){
 
     mymap.on('click', onMapClick); //Disable click move
     lockguessbutton.innerHTML = 'Lock your Guess!'
-
-    // Emit guess unlock
 }
 
 function deepClearDelete(node) {
@@ -281,10 +292,23 @@ const panoramaViewer = pannellum.viewer('panorama', {
     }
 });
 
+let debugpanostring = null;
+let debuground = null;
+
 function addNewPano(panostring, round){
+    debugpanostring = panostring
+    debuground = round
     panoramaViewer.addScene('round' + round, {
         "type": "equirectangular",
         "panorama": '/panos/' + panostring
+    });
+}
+
+function reloadNewPanoVoffset(voffset){
+    panoramaViewer.addScene('round' + debuground, {
+        "type": "equirectangular",
+        "panorama": '/panos/' + debugpanostring,
+        'voffset': voffset
     });
 }
 
@@ -316,9 +340,20 @@ socket.on('round-update', json => {
     displayPanorama()
 })
 
+
+socket.on('guess-update',json => {
+    updateCheckState(json['user'],json['status'])
+})
+
+
+socket.on('map-reveal', json =>{
+    console.log(json['users_guesses'])
+    console.log(json['roundscores'])
+    revealMap(json['users_guesses'],json['roundscores'])
+})
 /// Called Once per Game.
 socket.on('color-set', json =>{
-    console.log('Colo was set!')
+    // console.log('Colo was set!')
     userinfo['usercolors'] = json
 })
 

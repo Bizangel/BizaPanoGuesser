@@ -79,6 +79,18 @@ def test_disconnect():
     emit('lobby-update', PanoGame.getConnected(), room='lobby')  # Emit update
 
 
+@socketio.on('guess-lock')
+def guessLock(latlng):
+    # Leave guess lock to game
+    PanoGame.guessLock(request.sid, latlng)
+
+
+@socketio.on('guess-unlock')
+def guessUnlock():
+    # Leave guess lock to game
+    PanoGame.guessUnlock(request.sid)
+
+
 if __name__ == '__main__':
     SYNC_VALUE = 0
     socketio.run(app, debug=False, port=6789)

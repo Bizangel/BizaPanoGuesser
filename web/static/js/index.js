@@ -1,5 +1,8 @@
 const socket = io()
 
+
+let myusername = null;
+
 document.getElementById('joinlobby').addEventListener('click',() => {
     var value = document.getElementById('usernameEntry').value
     socket.emit('join-lobby',value)
@@ -23,7 +26,7 @@ socket.on('invalid-join', ()=>{
 
 socket.on('valid-join',()=>{
     displayLobbyStatus()
-    let myusername = document.getElementById('usernameEntry').value;
+    myusername = document.getElementById('usernameEntry').value;
 })
 
 

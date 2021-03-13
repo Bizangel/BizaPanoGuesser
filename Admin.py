@@ -85,3 +85,4 @@ def AdminSetup(app, socketio, PanoGame):
                 return
 
             print('access to debug', file=sys.stderr)
+            PanoGame.endRound()

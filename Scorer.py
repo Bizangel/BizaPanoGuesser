@@ -14,10 +14,15 @@ SIGMOID_A = -0.001
 SIGMOID_C = 3000
 
 
-def scorequantifier(scores):
+def scorequantifier(distances):  # dict that maps username -> distance
     # Adjusted Sigmoid function
-    return [100/(1+exp(-(x-SIGMOID_C)*SIGMOID_A)) for x in scores]
+    # Returns dict that maps username -> score
+    newdict = {}
+    for user in distances:
+        x = distances[user]
+        newdict[user] = round(100/(1+exp(-(x-SIGMOID_C)*SIGMOID_A)))
 
+    return newdict
 
 # MAX_SCORE_THRESHOLD = 100
 # MIN_SCORE_THRESHOLD = 6000
