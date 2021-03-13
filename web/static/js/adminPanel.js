@@ -32,6 +32,11 @@ document.getElementById('setPanoParams').addEventListener('click',(e)=>{
     indoors: indoors, countryNumber: countryNumber})
 })
 
+document.getElementById('moveNextRound').addEventListener('click',(e)=>{
+    socket.emit('admin-nextRound',{pwd: AdminToken})
+})
+
+
 socket.on('message',(mess) =>{
     document.getElementById("messageholder").innerHTML = mess
 })

@@ -23,9 +23,10 @@ function onMapClick (e) {
 mymap.on('click', onMapClick);
 
 
+let CountDownInterval = null
 function doCountdown(countDownDate){
     // Update the count down every 1 second
-    var CountDownInterval = setInterval(function() {
+    CountDownInterval = setInterval(function() {
 
       // Get today's date and time
       var now = new Date().getTime();
@@ -47,10 +48,20 @@ function doCountdown(countDownDate){
           document.getElementById("countDownDisplay").classList.add("bg-danger")
       }
 
+      if(!CurrentlyLocked){
+          // Background emit
+          if(totalseconds == 1 || totalseconds == 2){
+              // Do background emit
+              console.log('background emit!')
+              var latlng = playerGuess.getLatLng()
+              socket.emit('guess-lock-background', {'lat': latlng.lat, 'lng': latlng.lng})
+          }
+      }
+
       // If the count down is finished, write some text
       if (distance < 0) {
         clearInterval(CountDownInterval);
-        document.getElementById("countDownDisplay").innerHTML = "EXPIRED";
+        document.getElementById("countDownDisplay").innerHTML = "0s";
       }
     }, 1000);
 }
@@ -164,21 +175,55 @@ function unlockModalClose() {
     mapModalJquery.off('hide.bs.modal', preventHide);
 }
 
+
+function RevealLockGuessButton(){
+    var guesslock = document.getElementById('guesslockbutton')
+    guesslock.innerHTML = 'Waiting for host...'
+    guesslock.className = 'btn btn-primary'
+    guesslock.removeEventListener('click', TogglePlayerGuess)
+}
+
+function RevealUnlockGuessButton(){
+    var guesslock = document.getElementById('guesslockbutton')
+    guesslock.addEventListener('click', TogglePlayerGuess)
+
+    guesslock.className = 'btn btn-primary'
+    guesslock.innerHTML = 'Lock your Guess!'
+}
 // const sampleReveal = {'Mike Towers' : {lat: 45, lng: 56}, 'Notrichi': {lat: 45, lng: 80}, 'Fucking God!': {lat:30 , lng: 56},
 // 'SOLUTION' : {lat: 61.39146458246076 , lng: 15.89755986088935}}
 
 // Also receives an entry called 'SOLUTION', which contains SOL
 let revealLayer = L.layerGroup().addTo(mymap);
-function revealMap(json, scores){
+function revealMap(json, scores, location_name, country_name){
     // Locks the map in, reveals everything
     var jsoncolors = userinfo['usercolors']
-
+    revealLayer = L.layerGroup().addTo(mymap);
+    // Stop the timer
     lockModalClose()
     setButtonsLock()
+    RevealLockGuessButton()
+
+    if (document.getElementById("countDownDisplay").innerHTML !== "0s"){
+        clearInterval(CountDownInterval);
+        document.getElementById("countDownDisplay").innerHTML = "0s";
+    }
+
+
+
     mapModalJquery.modal('show')
 
     var rightLocation = json['SOLUTION']
     var rightLocation_marker = L.marker(rightLocation, {icon: solution_marker}).addTo(revealLayer);
+
+    if (location_name){
+        rightLocation_marker.bindPopup(`<b>${location_name} </b><br>${country_name}`).openPopup();
+    }
+    else{
+        var latsol = rightLocation['lat'].toFixed(4)
+        var lngsol = rightLocation['lng'].toFixed(4)
+        rightLocation_marker.bindPopup(`<b>${latsol}, ${lngsol}$ </b><br>${country_name}`).openPopup();
+    }
 
     setTimeout(()=>{
         mymap.off('click', onMapClick); // Disable map guessing
@@ -189,7 +234,7 @@ function revealMap(json, scores){
                 var playercolor = jsoncolors[username]
                 var playerlatlng = json[username]
                 var playerscore = scores[username]
-                lineOpts = {color: playercolor}
+                lineOpts = {color: colors[playercolor]} // The actual #hex
                 var playerMarker = L.marker(playerlatlng,{icon: MarkerColors[playercolor]}).addTo(revealLayer);
 
                 var geodesic = new L.Geodesic([playerlatlng, rightLocation],lineOpts)
@@ -199,15 +244,16 @@ function revealMap(json, scores){
 
                 var distance = Math.floor(geodesic.distance(playerlatlng,rightLocation)/1000)
 
-                playerMarker.bindPopup(username + '\n' + distance + 'km' + ' - ' + playerscore)
+                playerMarker.bindPopup(`<b>${username} </b> <br> ${distance} km away! <br> ${playerscore} points`)
                 if (username == myusername){
                     document.getElementById('mapModalTitle').innerHTML = `You were ${distance} kilometers away! You get ${playerscore} points!`
+                    mymap.fitBounds([rightLocation, playerlatlng ]);
                 }
             }
         }
 
-        // mymap.fitBounds([rightLocation, mylist[1] ]);
-        mymap.fitBounds(mylist)
+
+        // mymap.fitBounds(mylist)
     },1000)
 
 }
@@ -221,6 +267,7 @@ function clearNextRound(){
 
     unlockModalClose()
     setButtonsUnlock()
+    RevealUnlockGuessButton()
     mapModalJquery.modal('hide')
     mymap.setView([0, 0], 2);
 
@@ -238,12 +285,15 @@ mapModalVar.addEventListener('shown.bs.modal', function (event) {
 })
 
 
+let CurrentlyLocked = false
 function TogglePlayerGuess(){
     var lockguessbutton = document.getElementById('guesslockbutton')
     if (lockguessbutton.innerHTML.includes('Unlock')){
         UnlockPlayerGuess()
         socket.emit('guess-unlock')
+        CurrentlyLocked = false
     } else {
+        CurrentlyLocked = true // locked so you don't background emit
         LockPlayerGuess()
         var latlng = playerGuess.getLatLng()
         socket.emit('guess-lock', {'lat': latlng.lat, 'lng': latlng.lng})
@@ -264,7 +314,7 @@ function UnlockPlayerGuess(){
     var lockguessbutton = document.getElementById('guesslockbutton')
     lockguessbutton.className = 'btn btn-primary'
 
-    mymap.on('click', onMapClick); //Disable click move
+    mymap.on('click', onMapClick); //Enable click move
     lockguessbutton.innerHTML = 'Lock your Guess!'
 }
 
@@ -292,25 +342,24 @@ const panoramaViewer = pannellum.viewer('panorama', {
     }
 });
 
-let debugpanostring = null;
-let debuground = null;
+
 
 function addNewPano(panostring, round){
-    debugpanostring = panostring
-    debuground = round
     panoramaViewer.addScene('round' + round, {
         "type": "equirectangular",
         "panorama": '/panos/' + panostring
     });
 }
 
-function reloadNewPanoVoffset(voffset){
-    panoramaViewer.addScene('round' + debuground, {
-        "type": "equirectangular",
-        "panorama": '/panos/' + debugpanostring,
-        'voffset': voffset
-    });
-}
+// let debugpanostring = null;
+// let debuground = null;
+// function reloadNewPanoVoffset(voffset){
+//     panoramaViewer.addScene('round' + debuground, {
+//         "type": "equirectangular",
+//         "panorama": '/panos/' + debugpanostring,
+//         'voffset': voffset
+//     });
+// }
 
 function loadRoundPano(round){
     panoramaViewer.loadScene('round' + round)
@@ -328,12 +377,15 @@ socket.on('leaderboard-update', json => {
 
 socket.on('round-update', json => {
     // Json contains, totalrounds, round, linkedstring and DATE we're counting to
+    // console.log('round update called!')
+    clearNextRound() // Make sure it's clear and ready to go
+
     var countdown = new Date(json['countdown']*1000)
     doCountdown(countdown)
 
     var round = json['round']
     var totalrounds = json['totalrounds']
-    document.getElementById('roundDisplay').innerHTML = 'Round' + round + '/' + totalrounds
+    document.getElementById('roundDisplay').innerHTML = 'Round ' + round + ' / ' + totalrounds
 
     addNewPano(json['panostring'],round)
     loadRoundPano(round)
@@ -349,14 +401,76 @@ socket.on('guess-update',json => {
 socket.on('map-reveal', json =>{
     console.log(json['users_guesses'])
     console.log(json['roundscores'])
-    revealMap(json['users_guesses'],json['roundscores'])
+    revealMap(json['users_guesses'],json['roundscores'], json['loc_name'], json['country_name'])
 })
 /// Called Once per Game.
 socket.on('color-set', json =>{
     // console.log('Colo was set!')
     userinfo['usercolors'] = json
+    var mycolor = json[myusername]
+    setPlayerMarker(mycolor)
 })
 
+
+socket.on('game-reveal', json => {
+    clearNextRound()
+    updateLeaderboard(json['endleaderboard'], endLeaderboard = true)
+
+    console.log('Game revealed!')
+    console.log(json)
+
+    var winnerfirst = json['first']
+    var winnersecond = json['second']
+    var winnerthird = json['third']
+
+    var firstname = winnerfirst['username']
+    var firstpercent = winnerfirst['scorepercent'] + '%'
+
+    console.log(firstpercent)
+    if (!winnersecond){
+        var secondname = ''
+        var secondpercent = '0%'
+    }
+    else{
+        var secondname = winnersecond['username']
+        var secondpercent = winnersecond['scorepercent'] + '%'
+    }
+
+    if(!winnerthird){
+        var thirdname = ''
+        var thirdpercent = '0%'
+    } else {
+        var thirdname = winnerthird['username']
+        var thirdpercent = winnerthird['scorepercent'] + '%'
+    }
+
+    document.getElementById('firstname').innerHTML = ` ${firstname} <br> ${json['endleaderboard'][firstname]} Points!`
+    document.getElementById('secondname').innerHTML = ` ${secondname} <br> ${json['endleaderboard'][secondname]} Points`
+    document.getElementById('thirdname').innerHTML = ` ${thirdname} <br> ${json['endleaderboard'][thirdname]} Points`
+
+    document.getElementById('title-display-body').innerHTML = `
+    And the winner is...: ${firstname}
+    `
+
+    document.getElementById('colfirst-container').style.backgroundColor = colors[userinfo['usercolors'][firstname]]
+    document.getElementById('colsecond-container').style.backgroundColor = colors[userinfo['usercolors'][secondname]]
+    document.getElementById('colthird-container').style.backgroundColor = colors[userinfo['usercolors'][thirdname]]
+
+    if (!winnersecond){
+        document.getElementById('secondname').innerHTML = ''
+    }
+    if (!winnerthird){
+        document.getElementById('thirdname').innerHTML = ''
+    }
+    document.getElementById('colfirst-container').style.height = firstpercent
+    document.getElementById('colsecond-container').style.height = secondpercent
+    document.getElementById('colthird-container').style.height = thirdpercent
+
+
+    displayLeaderboardAnimation()
+    // Leave the lobby for sake of consistency
+    socket.emit('leave-lobby')
+})
 // socket.on('colortest', json =>{
 //     console.log('Colorrrr test!')
 //     console.log(json)

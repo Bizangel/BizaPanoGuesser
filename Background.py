@@ -112,6 +112,12 @@ def BackgroundSetup(app, socketio, PanoGame):
 
             if (FCrypt.decrypt(bytes(data['pwd'], 'utf-8')).decode('utf-8')
                     == BackgroundPass):
-                print('Countdown was done Successfully!', file=sys.stderr)
+
+                if data['round'] == PanoGame.round and PanoGame.roundStarted:
+                    print('Countdown was done Successfully!', file=sys.stderr)
+                    PanoGame.endRound()  # End the round
+                else:  # Round has already ended!
+                    print('Old countdown received, ignoring!', file=sys.stderr)
+
         else:
             return

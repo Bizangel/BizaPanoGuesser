@@ -89,7 +89,7 @@ const markerYellow = new L.Icon({
 });
 
 const solution_marker = new L.Icon({
-  iconUrl: '/markers/marker-yellow.png',
+  iconUrl: '/markers/marker-solution.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -98,7 +98,7 @@ const solution_marker = new L.Icon({
 });
 
 const MarkerColors = {
-    aqua: markerRed,
+    aqua: markerAqua,
     black: markerBlack,
     blue: markerBlue,
     brown: markerBrown,
@@ -107,4 +107,5 @@ const MarkerColors = {
     purple: markerPurple,
     red: markerRed,
     yellow: markerYellow,
+    orange: markerOrange,
 }

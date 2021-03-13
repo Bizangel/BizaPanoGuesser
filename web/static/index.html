@@ -74,7 +74,7 @@ crossorigin=""/>
                      <!-- Here we fit the loby code later on, Initially hidden-->
                      <div class="card-body" id="lobby-display-menu" style="display: none;">
                        <h5 class="card-title">Lobby:</h5>
-                       <p class="card-text" >Waiting for the host to start... </p>
+                       <p class="card-text" id="waithost-message">Waiting for the host to start... </p>
 
                        <div id="lobby-div-target">
                            <ul class="list-group" id="lobby-players-targets">
@@ -160,7 +160,7 @@ crossorigin=""/>
     <div style="display: none;" id="leaderboard-container">
 
         <div id="title-display" style="display:grid; place-items: center center; justify-content: center; text-align: center;">
-            <h1 style="color: white; margin: auto;"> And the winner is...: Le jug </h1>
+            <h1 style="color: white; margin: auto;" id="title-display-body"> And the winner is...: Le jug </h1>
         </div>
         <div style="display: grid; grid-template-columns: 35vw 30vw 35vw;">
             <div></div>
@@ -189,7 +189,7 @@ crossorigin=""/>
             <div></div>
         </div>
 
-        <div style="display:grid; place-items: center center; grid-template-columns: auto auto auto;">
+        <div style="display:grid; place-items: center center; grid-template-columns: 30vw 40vw 30vw;">
             <div></div>
             <table class="table table-sm table-hover table-dark" id="end-LeaderboardTable">
               <thead>
@@ -202,7 +202,9 @@ crossorigin=""/>
               <tbody id="end-LeaderboardTable-Body">
               </tbody>
           </table>
-          <div></div>
+          <div style="display: grid; place-items: end end; width: 100%; height: 100%;">
+              <button class="btn btn-primary" onclick="displayLobbyJoin()" style="margin-bottom: 20px; margin-right: 20px;">Go back to lobby!</button>
+          </div>
         </div>
     </div>
 

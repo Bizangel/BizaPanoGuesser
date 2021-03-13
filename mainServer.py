@@ -85,6 +85,11 @@ def guessLock(latlng):
     PanoGame.guessLock(request.sid, latlng)
 
 
+@socketio.on('guess-lock-background')
+def backgroundGuessUpdate(latlng):
+    PanoGame.guessLockBackground(request.sid, latlng)
+
+
 @socketio.on('guess-unlock')
 def guessUnlock():
     # Leave guess lock to game

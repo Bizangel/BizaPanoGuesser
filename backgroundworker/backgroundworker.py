@@ -49,8 +49,13 @@ def fetchNextPano(data):  # Receives dict with pwd and filename
                         countryNumber=data['params']['countryNumber'])
 
                     print(data['params'])
-                    print(panoid, lat, long, loc_name, cname)
-                    download_pano(panoid, 'downloaded.png')
+                    print(panoid)
+                    # print(panoid, lat, long, loc_name, cname)
+                    if data['params']['indoors']:
+                        # Indoors tend to fail
+                        download_pano(panoid, 'downloaded.png', zoom=3)
+                    else:
+                        download_pano(panoid, 'downloaded.png', zoom=4)
                     break
                 except Exception:
                     continue  # retry again

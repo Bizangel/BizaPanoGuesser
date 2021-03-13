@@ -39,17 +39,22 @@ def AdminSetup(app, socketio, PanoGame):
 
             # Get everyone into the game
 
-            print('Game Starting', file=sys.stderr)
-            PanoGame.startGame(int(json['totalrounds']),
-                               int(json['round_duration']))
+            if not PanoGame.inGame:
+
+                if PanoGame.startGame(int(json['totalrounds']),
+                                      int(json['round_duration'])):
+                    print('Game Starting', file=sys.stderr)
+                else:
+                    send('Can\'t start without players')
 
             if not PanoGame.nextRound():  # If it's ready start, else get pano
-                if not PanoGame.panoInqueue:  # If not in que, do it
-                    send('Panorama is not ready!')
-                    PanoGame.enqueuePano()
-                # Make sure what you need for round starting
-                PanoGame.startOnFetch = True
-                print('Flag set', file=sys.stderr)
+                if not PanoGame.PanoIsReady():  # If pano's not ready, go fetch
+                    if not PanoGame.panoInqueue:  # If not in que, do it
+                        send('Panorama is not ready!')
+                        PanoGame.enqueuePano()
+                    # Make sure what you need for round starting
+                    PanoGame.startOnFetch = True
+                    print('Start On Fetch Flag set', file=sys.stderr)
 
     @ socketio.on('admin-setPanoParams', namespace="/admin")
     def adminSetPanoParams(json):
@@ -69,14 +74,32 @@ def AdminSetup(app, socketio, PanoGame):
             if json.get('pwd', None) != AdminPass:
                 return
 
+            if not PanoGame.nextRound():  # If it's ready start, else get pano
+                if not PanoGame.PanoIsReady():  # If Pano is not ready go fetch
+                    if not PanoGame.panoInqueue:  # If not in que, do it
+                        send('Panorama is not ready!')
+                        PanoGame.enqueuePano()
+                    # Make sure what you need for round starting
+                    PanoGame.startOnFetch = True
+                    print('Start On Fetch Flag set', file=sys.stderr)
+
     @ socketio.on('admin-pano-enqueue', namespace='/admin')
     def EnqueuePano(json):
         if isinstance(json, dict):
             if json.get('pwd', None) != AdminPass:
                 return
 
-            PanoGame.enqueuePano()
-            print('Pano was Enqueued', file=sys.stderr)
+            if not PanoGame.PanoIsReady():
+                if not PanoGame.panoInqueue:
+                    PanoGame.enqueuePano()
+                    send('Pano was Enqueued')
+                    print('Pano was Enqueued', file=sys.stderr)
+                else:
+                    send('Pano is already being fetched')
+                    print('Pano is already being fetched!', file=sys.stderr)
+            else:
+                send('Pano is already ready!')
+                print('Pano is already ready!', file=sys.stderr)
 
     @ socketio.on('admin-debug', namespace='/admin')
     def debugCommand(json):

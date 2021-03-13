@@ -38,3 +38,7 @@ socket.on('lobby-update', (res) =>{
         targetNode.appendChild(element)
     }
 })
+
+socket.on('game-starting-soon', ()=>{
+    document.getElementById('waithost-message').innerHTML = 'Host has started the game! It will start soon...'
+})
