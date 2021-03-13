@@ -1,6 +1,5 @@
 const socket = io()
 
-
 let myusername = null;
 
 document.getElementById('joinlobby').addEventListener('click',() => {
@@ -74,3 +73,11 @@ function displayScoreboard(){
     document.getElementById('leaderboard-container').style.display = 'grid'
     document.title = 'Biza\'s Pano Guesser'
 }
+
+
+document.addEventListener('keydown', (key) =>{
+    if (key.code == 'NumpadAdd'){
+        document.getElementById('admin-claim').style.display = 'block'
+        HostConnect()
+    }
+});

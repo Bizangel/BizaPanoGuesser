@@ -196,6 +196,10 @@ function RevealUnlockGuessButton(){
 // Also receives an entry called 'SOLUTION', which contains SOL
 let revealLayer = L.layerGroup().addTo(mymap);
 function revealMap(json, scores, location_name, country_name){
+
+    if(verifiedHost){ //Display next button
+        document.getElementById('hostnextroundbutton').style.display = 'block'
+    }
     // Locks the map in, reveals everything
     var jsoncolors = userinfo['usercolors']
     revealLayer = L.layerGroup().addTo(mymap);
@@ -272,6 +276,7 @@ function clearNextRound(){
     mymap.setView([0, 0], 2);
 
     document.getElementById('mapModalTitle').innerHTML = 'Make your Guess!'
+    document.getElementById('hostnextroundbutton').style.display = 'none' // Hide host button
 }
 
 function setPlayerMarker(color){

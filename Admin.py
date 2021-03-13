@@ -12,24 +12,22 @@ def generateToken(n):
 
 def AdminSetup(app, socketio, PanoGame):
     # AdminPass = generateToken(25)
-    AdminPass = '123'
+    AdminPass = generateToken(25)
+
     print('AdminPass=' + AdminPass, file=sys.stderr)
-
-    @ app.route("/admin", methods=["GET", "POST"])
-    def adminIntro():
-        if request.method == 'POST':
-            req = request.form
-
-            auth = False
-            if AdminPass == req.get('pwd', None):
-                auth = True
-            return render_template('adminPanel.html',
-                                   authorized=auth, token=AdminPass)
-        return app.send_static_file('admin.html')
 
     @socketio.on('connect', namespace='/admin')
     def adminConnect():
-        print('admin connected', file=sys.stderr)
+        print('admin attempting to connect', file=sys.stderr)
+
+    @socketio.on('verify-admin-token', namespace='/admin')
+    def adminVerify(json):
+        if isinstance(json, dict):
+            if json.get('pwd', None) == AdminPass:
+                emit('admin-verify', json['pwd'])
+                print('Admin Connected login', file=sys.stderr)
+            else:
+                print('invalid admin login', file=sys.stderr)
 
     @ socketio.on('admin-startGame', namespace="/admin")
     def adminStartGame(json):

@@ -92,7 +92,47 @@ crossorigin=""/>
                </div>
             </div>
         </div>
+
+        <div class="card" id="admin-claim" style="display: none;">
+            <div class="input-group mb-3">
+                          <span class="input-group-text">Admin Key:</span>
+                          <input type="text" class="form-control" id="adminkeyinput">
+            </div>
+           <button type="button" id="claimHostButton">Claim Host!</button> <br>
+        </div>
+        <div class="card w-20" id="admin-display" style="display: none;">
+
+            <div id="messageholder"></div>
+            <input type="checkbox" id="urban">
+            <label for="urban"> Urban panoramas?</label><br>
+
+            <input type="checkbox" id="indoors">
+            <label for="indoors"> Indoors panoramas?</label><br>
+
+            <input type="number" id="countryNumber"></input>
+            <label for="indoors"> Specific country? (Empty for ALL)</label><br>
+
+
+            <button type="button" id="setPanoParams">setPanoParams</button> <br>
+
+
+
+            <input type="number" id="roundduration" value="90"></input>
+            <label for="roundduration"> Round Duration (in seconds) (Empty for ALL)</label><br>
+
+            <input type="number" id="totalrounds" value="10"></input>
+            <label for="totalrounds"> Total Rounds </label><br>
+
+            <button type="button" id="startGame">Start Game</button>
+            <button type="button" id="pano-enqueue-button">PreloadPanorama</button>
+            <br>
+            <!-- <button type="button" id="moveNextRound">Next Round</button>
+            <br>
+            <button type="button" id="debugButton">Debug</button> -->
+
+        </div>
     </div>
+
 
 
 
@@ -152,6 +192,7 @@ crossorigin=""/>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-primary" id="guesslockbutton">Lock Guess</button>
+            <button type="button" class="btn btn-success" id="hostnextroundbutton" style="display: none;">Next!</button>
           </div>
         </div>
       </div>

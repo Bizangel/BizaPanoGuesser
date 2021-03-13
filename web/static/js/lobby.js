@@ -42,3 +42,62 @@ socket.on('lobby-update', (res) =>{
 socket.on('game-starting-soon', ()=>{
     document.getElementById('waithost-message').innerHTML = 'Host has started the game! It will start soon...'
 })
+
+
+let AdminToken = null;
+let verifiedHost = false;
+function HostConnect(){
+    const adminsocket = io('/admin');
+
+    adminsocket.on('message',(mess) =>{
+        document.getElementById("messageholder").innerHTML = mess
+    })
+
+    // document.getElementById('debugButton').addEventListener('click',(e)=>{
+    //     adminsocket.emit('admin-debug',{pwd: AdminToken})
+    // })
+
+    document.getElementById('pano-enqueue-button').addEventListener('click',(e)=>{
+        adminsocket.emit('admin-pano-enqueue',{pwd: AdminToken})
+    })
+
+
+    document.getElementById('startGame').addEventListener('click',(e)=>{
+        var totalrounds = document.getElementById("totalrounds").value
+        var roundduration = document.getElementById("roundduration").value
+        adminsocket.emit('admin-startGame',{pwd: AdminToken,
+            totalrounds: totalrounds, round_duration: roundduration})
+    })
+
+
+    document.getElementById('setPanoParams').addEventListener('click',(e)=>{
+        var urban = document.getElementById("urban").checked
+        var indoors = document.getElementById("indoors").checked
+        var countryNumber = document.getElementById("countryNumber").value
+
+        if (!countryNumber){
+            countryNumber = null;
+        }
+
+        adminsocket.emit('admin-setPanoParams', {pwd: AdminToken, urban :  urban,
+        indoors: indoors, countryNumber: countryNumber})
+    })
+
+    document.getElementById('hostnextroundbutton').addEventListener('click',(e)=>{
+        adminsocket.emit('admin-nextRound',{pwd: AdminToken})
+    })
+
+
+    document.getElementById('claimHostButton').addEventListener('click',(e) =>{
+        var token = document.getElementById('adminkeyinput').value
+        adminsocket.emit('verify-admin-token', {pwd: token})
+    })
+
+    adminsocket.on('admin-verify', (token) =>{
+                AdminToken = token
+                verifiedHost = true;
+                document.getElementById('admin-claim').style.display = 'none'
+                document.getElementById('admin-display').style.display = 'block'
+                document.getElementById('hostnextroundbutton').style.display = 'block'
+    })
+}

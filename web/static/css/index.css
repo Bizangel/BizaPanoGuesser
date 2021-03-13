@@ -161,3 +161,23 @@ body {
     background-color:  yellow;
     height: 25%;
 }
+
+
+#admin-display{
+    width: 20%;
+    height: 100%;
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+
+    overflow-y: auto;
+}
+
+#admin-claim{
+    width: 20%;
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+
+    overflow-y: auto;
+}
