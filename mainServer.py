@@ -5,6 +5,8 @@ from flask_socketio import emit, send, join_room, leave_room
 from Admin import AdminSetup
 from Background import BackgroundSetup
 from Game import Game
+from re import compile as RegexValidator
+
 # For emitting to specific client use it's sid on the room parameter of emit
 app = Flask(__name__,
             static_url_path='',
@@ -22,7 +24,7 @@ else:
 
 
 PanoGame = Game(socketio)
-
+UsernameValidator = RegexValidator('[\\w,.?!\n ]+')
 AdminSetup(app, socketio, PanoGame)
 BackgroundSetup(app, socketio, PanoGame)
 
@@ -39,6 +41,16 @@ def join_lobby(username):
     if isinstance(username, str):
         if len(username) < 5:
             send('Username is too short!')
+            emit('invalid-join')
+            return
+
+        if not UsernameValidator.fullmatch(username):
+            send('Username contains special characters!')
+            emit('invalid-join')
+            return
+
+        if len(username) > 50:
+            send('Username is too long!')
             emit('invalid-join')
             return
 

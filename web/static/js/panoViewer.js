@@ -277,6 +277,10 @@ function clearNextRound(){
 
     document.getElementById('mapModalTitle').innerHTML = 'Make your Guess!'
     document.getElementById('hostnextroundbutton').style.display = 'none' // Hide host button
+
+    document.getElementById("countDownDisplay").classList.remove("bg-danger")
+    document.getElementById("countDownDisplay").classList.add("bg-primary")
+
 }
 
 function setPlayerMarker(color){
@@ -454,7 +458,7 @@ socket.on('game-reveal', json => {
     document.getElementById('thirdname').innerHTML = ` ${thirdname} <br> ${json['endleaderboard'][thirdname]} Points`
 
     document.getElementById('title-display-body').innerHTML = `
-    And the winner is...: ${firstname}
+    <i class="fas fa-trophy"></i> ${firstname} <i class="fas fa-trophy"></i>
     `
 
     document.getElementById('colfirst-container').style.backgroundColor = colors[userinfo['usercolors'][firstname]]
@@ -474,6 +478,7 @@ socket.on('game-reveal', json => {
 
     displayLeaderboardAnimation()
     // Leave the lobby for sake of consistency
+    document.getElementById('waithost-message').innerHTML = 'Waiting for the host to start...'
     socket.emit('leave-lobby')
 })
 // socket.on('colortest', json =>{

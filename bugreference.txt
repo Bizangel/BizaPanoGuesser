@@ -1,0 +1,20 @@
+UNREPRODUCABLE
+----------------
+score order // Cannot be reproduced
+check full timer rennes duration // Check for future
+
+
+CURRENT
+--------
+change score formulae???
+add small optional toggle fix ()
+choose country, by latlng then switch to country selection
+
+
+FIXABLE
+--------
+Countdown callback return on done Can overlap with new games: To reproduce, start a game with timer, end game, start new game quickly, round will end earlier.
+
+preload imagen
+INSIDE panoramas only work in some countries, check which countries are those. (avoid stucking)
+
