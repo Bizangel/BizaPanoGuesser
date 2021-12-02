@@ -340,9 +340,12 @@ function recursiveClear(node) {
   node.parentNode.removeChild(node);
 }
 
+const panostring1 = 'pano1616024823'
+const panostring2 = 'pano1616026829'
+
 
 const panoramaViewer = pannellum.viewer('panorama', {
-    "type": "equirectangular",
+    // "type": "multires",
     "autoLoad": true,
     "showFullscreenCtrl": false,
     "showZoomCtrl": false,
@@ -352,27 +355,46 @@ const panoramaViewer = pannellum.viewer('panorama', {
 });
 
 
-
 function addNewPano(panostring, round){
     panoramaViewer.addScene('round' + round, {
-        "type": "equirectangular",
-        "panorama": '/panos/' + panostring
+        "type": "multires",
+        "multiRes": {
+            "basePath": "/panos/" + panostring,
+            "path": "/%l/%s%y_%x",
+            "fallbackPath": "/fallback/%s",
+            "extension": "jpg",
+            "tileResolution": 512,
+            "maxLevel": 6,
+            "cubeResolution": 8432
+        }
     });
 }
-
-// let debugpanostring = null;
-// let debuground = null;
-// function reloadNewPanoVoffset(voffset){
-//     panoramaViewer.addScene('round' + debuground, {
-//         "type": "equirectangular",
-//         "panorama": '/panos/' + debugpanostring,
-//         'voffset': voffset
-//     });
-// }
 
 function loadRoundPano(round){
     panoramaViewer.loadScene('round' + round)
 }
+
+//  equirectangular version
+// const panoramaViewer = pannellum.viewer('panorama', {
+//     "type": "equirectangular",
+//     "autoLoad": true,
+//     "showFullscreenCtrl": false,
+//     "showZoomCtrl": false,
+//     "scenes": {
+//
+//     }
+// });
+//
+// function addNewPano(panostring, round){
+//     panoramaViewer.addScene('round' + round, {
+//         "type": "equirectangular",
+//         "panorama": '/panos/' + panostring
+//     });
+// }
+//
+// function loadRoundPano(round){
+//     panoramaViewer.loadScene('round' + round)
+// }
 
 
 

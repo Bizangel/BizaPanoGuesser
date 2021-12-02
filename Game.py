@@ -1,9 +1,9 @@
 from time import time as epoch_seconds
-from time import sleep
+# from time import sleep
 from random import choice
 import sys
 from vincenty import vincenty as geodistance
-from flask_socketio import emit, join_room, leave_room, socketio
+# from flask_socketio import emit, join_room, leave_room, socketio
 from Scorer import scorequantifier
 
 
@@ -43,7 +43,7 @@ class Game:
         self.indoors = indoors
         self.countryNumber = countryNumber
 
-    def enqueuePano(self):
+    def enqueuePano(self, multires=True):
         ''' Enqueues a pano to be fetched '''
         print('Enqueueing Pano', file=sys.stderr)
         self.panoInqueue = True
@@ -51,10 +51,16 @@ class Game:
         enc = self.FCrypt.encrypt(bytes(self.BackgroundPass, 'utf-8'))
         params = {'urban': self.urban, 'indoors': self.indoors,
                   'countryNumber': self.countryNumber}
+
+        if multires:
+            filename = 'pano' + timestamp
+        else:
+            filename = 'pano' + timestamp + '.png'
         self.socketioapp.emit(
             'fetchNextPano', {'pwd': enc.decode('utf-8'),
-                              'filename': 'pano' + timestamp + '.png',
-                              'params': params},
+                              'filename': filename,
+                              'params': params,
+                              'multires': multires},
             namespace='/background', broadcast=True)
 
     def startRoundCountdown(self):

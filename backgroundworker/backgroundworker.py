@@ -1,6 +1,8 @@
 import socketio
 from RandomPanoDownloader.goodFetcher import getRandomPanorama
 from RandomPanoDownloader.PanoDownloader import download_pano
+from randomByarea import getRandomValidCountryByArea
+from multiresGen import GenerateMultiresWrapper
 
 from time import sleep
 from pathlib import Path
@@ -41,12 +43,18 @@ def fetchNextPano(data):  # Receives dict with pwd and filename
             return
 
         if verifyServerOrigin(bytes(data['pwd'], 'utf-8')):
+        
+            if data['params'].get('countryNumber') is None:
+                countryN = getRandomValidCountryByArea()
+            else:
+                countryN = data['params'].get('countryNumber')
+
             while True:
                 try:
                     panoid, lat, long, loc_name, cname = getRandomPanorama(
                         urban=data['params']['urban'],
                         indoors=data['params']['indoors'],
-                        countryNumber=data['params']['countryNumber'])
+                        countryNumber=str(countryN))
 
                     print(data['params'])
                     print(panoid)
@@ -61,11 +69,16 @@ def fetchNextPano(data):  # Receives dict with pwd and filename
                     continue  # retry again
 
             # Downloaded move to static
-            srcfile = Path(__file__).parent / 'downloaded.png'
-            dstfile = (Path(__file__).parent.parent / 'web' / 'static'
-                       / 'panos' / data['filename'])
-            #
-            copyfile(srcfile, dstfile)
+            if data['multires']:
+                # Create multires and move
+                GenerateMultiresWrapper('downloaded.png', data['filename'])
+            else:
+                srcfile = Path(__file__).parent / 'downloaded.png'
+                dstfile = (Path(__file__).parent.parent / 'web' / 'static'
+                           / 'panos' / data['filename'])
+                #
+                copyfile(srcfile, dstfile)
+
             pwd = FCrypt.encrypt(bytes(BackgroundPass, 'utf-8'))
             pwd = pwd.decode('utf-8')
             sio.emit('fetchNextPano-done',

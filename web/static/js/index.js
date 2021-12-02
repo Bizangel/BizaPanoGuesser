@@ -61,6 +61,9 @@ function displayPanorama(){
     document.getElementById('leaderboard-container').style.display = 'none'
 
     document.title = 'Biza\'s Pano Guesser'
+
+    //Resize viewer so it fits
+    panoramaViewer.resize()
 }
 
 function displayScoreboard(){

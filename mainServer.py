@@ -24,7 +24,7 @@ else:
 
 
 PanoGame = Game(socketio)
-UsernameValidator = RegexValidator('[\\w,.?!\n ]+')
+UsernameValidator = RegexValidator('[\\w,.?!\n\' ]+')
 AdminSetup(app, socketio, PanoGame)
 BackgroundSetup(app, socketio, PanoGame)
 

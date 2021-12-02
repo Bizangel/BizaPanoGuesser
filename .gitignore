@@ -1,6 +1,7 @@
 #Custom
 panos/
 **/nona/output/
+BizaPanoGuessRESOURCES/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
